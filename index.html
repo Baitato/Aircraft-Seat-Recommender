@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aircraft Seat Recommender</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            overflow: hidden;
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #earth-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            min-width: 300px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #87CEEB;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #45a049, #4CAF50);
+            transform: translateY(-2px);
+        }
+
+        #recommendations {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            max-width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .recommendation-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .recommendation-item h4 {
+            color: #4CAF50;
+            margin-bottom: 8px;
+        }
+
+        .seat-side {
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .reason {
+            font-size: 14px;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        #info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #attribution {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            font-size: 12px;
+            color: #ccc;
+            max-width: 250px;
+        }
+
+        #attribution a {
+            color: #87CEEB;
+            text-decoration: none;
+        }
+
+        #attribution a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="earth-canvas"></canvas>
+        
+        <div id="ui-panel">
+            <h2 style="margin-bottom: 20px; color: #87CEEB;">✈️ Seat Recommender</h2>
+            
+            <div class="form-group">
+                <label for="source">Source City:</label>
+                <input type="text" id="source" placeholder="e.g., New York, London, Tokyo">
+            </div>
+            
+            <div class="form-group">
+                <label for="destination">Destination City:</label>
+                <input type="text" id="destination" placeholder="e.g., Paris, Sydney, Dubai">
+            </div>
+            
+            <div class="form-group">
+                <label for="departure-time">Departure Time:</label>
+                <input type="datetime-local" id="departure-time">
+            </div>
+            
+            <div class="form-group">
+                <label for="flight-duration">Flight Duration (hours):</label>
+                <input type="number" id="flight-duration" placeholder="e.g., 8.5" step="0.5" min="0.5" max="24">
+            </div>
+            
+            <button onclick="getRecommendations()">Get Seat Recommendations</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Calculating optimal seats...</p>
+            </div>
+        </div>
+        
+        <div id="recommendations">
+            <h3 style="margin-bottom: 15px; color: #87CEEB;">🎯 Recommendations</h3>
+            <p style="color: #ccc; font-size: 14px;">Enter flight details to get personalized seat recommendations based on sun position and flight direction.</p>
+        </div>
+        
+        <div id="info-panel">
+            <div><strong>🌍 Earth Controls:</strong></div>
+            <div>• Drag to rotate • Scroll to zoom • Right-click to pan</div>
+            <div style="margin-top: 10px;"><strong>✈️ Flight Path:</strong></div>
+            <div>• Red line shows your route</div>
+            <div style="margin-top: 10px;"><strong>🌙 Day/Night Cycle:</strong></div>
+            <div>• Bright side: Day • Dark side: Night with city lights</div>
+        </div>
+
+        <div id="attribution">
+            <strong>Earth Implementation:</strong><br>
+            <a href="https://github.com/bobbyroe/threejs-earth" target="_blank">bobbyroe/threejs-earth</a><br>
+            <strong>Earth Textures:</strong><br>
+            <a href="https://www.solarsystemscope.com/textures/" target="_blank">Solar System Scope</a><br>
+            CC Attribution 4.0 License
+        </div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html> 

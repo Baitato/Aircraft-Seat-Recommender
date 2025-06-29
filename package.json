@@ -1,0 +1,27 @@
+{
+  "name": "aircraft-seat-recommender",
+  "version": "1.0.0",
+  "description": "Aircraft seat recommendation application with 3D Earth visualization",
+  "main": "index.html",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.158.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "threejs",
+    "earth",
+    "aircraft",
+    "seat-recommendation",
+    "shaders"
+  ],
+  "author": "",
+  "license": "MIT"
+}
