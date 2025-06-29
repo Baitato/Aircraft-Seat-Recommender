@@ -2,11 +2,18 @@ import { defineConfig } from 'vite'
 import { ghPages } from 'vite-plugin-gh-pages'
 
 export default defineConfig({
-  base: '/Aircraft-Seat-Recommender/',
+  base: '/trilogy-assignment/',
   plugins: [
     ghPages({
       branch: 'gh-pages',
-      repo: 'https://github.com/Baitato/Aircraft-Seat-Recommender.git'
+      repo: 'https://github.com/baitato/trilogy-assignment.git'
     })
-  ]
+  ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: './index.html'
+      }
+    }
+  }
 }) 
