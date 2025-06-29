@@ -119,9 +119,9 @@ class AircraftSeatRecommender {
 
         // Earth surface material with 8K textures
         const material = new THREE.MeshPhongMaterial({
-            map: loader.load("./textures-ultra/earth_day_8k.jpg"),
-            specularMap: loader.load("./textures/02_earthspec1k.jpg"), // Keep 1K specular for now
-            bumpMap: loader.load("./textures/01_earthbump1k.jpg"), // Keep 1K bump for now
+            map: loader.load("/textures-ultra/earth_day_8k.jpg"),
+            specularMap: loader.load("/textures/02_earthspec1k.jpg"), // Keep 1K specular for now
+            bumpMap: loader.load("/textures/01_earthbump1k.jpg"), // Keep 1K bump for now
             bumpScale: 0.04,
         });
         this.earthMesh = new THREE.Mesh(geometry, material);
@@ -129,7 +129,7 @@ class AircraftSeatRecommender {
 
         // City lights material with 8K night texture
         const lightsMat = new THREE.MeshBasicMaterial({
-            map: loader.load("./textures-ultra/earth_night_8k.jpg"),
+            map: loader.load("/textures-ultra/earth_night_8k.jpg"),
             blending: THREE.AdditiveBlending,
         });
         this.lightsMesh = new THREE.Mesh(geometry, lightsMat);
