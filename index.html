@@ -29,17 +29,38 @@
             height: 100%;
         }
 
+        /* Mobile-first responsive design */
         #ui-panel {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
             border-radius: 10px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 1000;
-            min-width: 320px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Tablet and desktop styles */
+        @media (min-width: 768px) {
+            #ui-panel {
+                top: 20px;
+                left: 20px;
+                right: auto;
+                padding: 20px;
+                min-width: 350px;
+            }
+        }
+
+        /* Large desktop styles */
+        @media (min-width: 1200px) {
+            #ui-panel {
+                min-width: 400px;
+            }
         }
 
         .form-group {
@@ -49,20 +70,36 @@
 
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
             color: #87CEEB;
+            font-size: 14px;
+        }
+
+        @media (min-width: 768px) {
+            label {
+                font-size: 16px;
+            }
         }
 
         input, select {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             background: rgba(255, 255, 255, 0.1);
             color: white;
-            font-size: 14px;
+            font-size: 16px;
             transition: all 0.3s ease;
+            min-height: 44px; /* Touch-friendly minimum height */
+        }
+
+        @media (min-width: 768px) {
+            input, select {
+                padding: 10px;
+                font-size: 14px;
+                min-height: auto;
+            }
         }
 
         input:focus, select:focus {
@@ -87,7 +124,7 @@
             right: 0;
             background: rgba(0, 0, 0, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
+            border-radius: 8px;
             max-height: 200px;
             overflow-y: auto;
             z-index: 1001;
@@ -95,10 +132,20 @@
         }
 
         .search-result {
-            padding: 10px;
+            padding: 12px;
             cursor: pointer;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             transition: background 0.2s ease;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .search-result {
+                padding: 10px;
+                min-height: auto;
+            }
         }
 
         .search-result:hover {
@@ -130,16 +177,32 @@
         }
 
         .calendar-popup {
-            position: absolute;
-            top: 100%;
-            left: 0;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            padding: 15px;
-            z-index: 1001;
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 1002;
             display: none;
-            min-width: 280px;
+            width: 90vw;
+            max-width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-popup {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                transform: none;
+                width: auto;
+                min-width: 280px;
+                padding: 15px;
+            }
         }
 
         .calendar-header {
@@ -153,11 +216,22 @@
             background: none;
             border: none;
             color: #87CEEB;
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
-            padding: 5px;
-            border-radius: 3px;
+            padding: 8px;
+            border-radius: 5px;
             transition: background 0.2s ease;
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-nav {
+                font-size: 18px;
+                padding: 5px;
+                min-width: auto;
+                min-height: auto;
+            }
         }
 
         .calendar-nav:hover {
@@ -167,6 +241,7 @@
         .calendar-title {
             font-weight: bold;
             color: #87CEEB;
+            font-size: 16px;
         }
 
         .calendar-grid {
@@ -180,16 +255,27 @@
             text-align: center;
             font-weight: bold;
             color: #ccc;
-            padding: 5px;
+            padding: 8px;
             font-size: 12px;
         }
 
         .calendar-day {
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 8px;
             transition: all 0.2s ease;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-day {
+                padding: 8px;
+                min-height: auto;
+            }
         }
 
         .calendar-day:hover {
@@ -212,29 +298,72 @@
         .time-selector {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         .time-selector select {
             flex: 1;
-            padding: 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2387CEEB' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 35px;
+        }
+
+        .time-selector select:focus {
+            outline: none;
+            border-color: #87CEEB;
+            box-shadow: 0 0 10px rgba(135, 206, 235, 0.3);
+        }
+
+        .time-selector select option {
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 10px;
+        }
+
+        @media (min-width: 768px) {
+            .time-selector select {
+                padding: 8px;
+                padding-right: 30px;
+                background-size: 14px;
+            }
         }
 
         .calendar-actions {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
         .calendar-btn {
             flex: 1;
-            padding: 8px;
+            padding: 12px;
             background: rgba(135, 206, 235, 0.2);
             border: 1px solid rgba(135, 206, 235, 0.3);
             color: white;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
+            font-size: 16px;
+            min-height: 44px;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-btn {
+                padding: 8px;
+                font-size: 14px;
+                min-height: auto;
+            }
         }
 
         .calendar-btn:hover {
@@ -252,15 +381,24 @@
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             background: linear-gradient(45deg, #4CAF50, #45a049);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
             transition: all 0.3s ease;
+            min-height: 50px;
+        }
+
+        @media (min-width: 768px) {
+            button {
+                padding: 12px;
+                font-size: 16px;
+                min-height: auto;
+            }
         }
 
         button:hover {
@@ -268,19 +406,72 @@
             transform: translateY(-2px);
         }
 
+        /* Mobile-first recommendations panel */
         #recommendations {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 15px 15px 0 0;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 1000;
-            max-width: 350px;
-            max-height: 80vh;
+            max-height: 40vh; /* Reduced height to leave more space */
             overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        #recommendations.show {
+            transform: translateY(0);
+        }
+
+        /* Add close button for mobile recommendations */
+        .recommendations-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #87CEEB;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .recommendations-close:hover {
+            background: rgba(135, 206, 235, 0.2);
+        }
+
+        /* Hide close button on desktop */
+        @media (min-width: 768px) {
+            .recommendations-close {
+                display: none;
+            }
+        }
+
+        /* Tablet and desktop recommendations */
+        @media (min-width: 768px) {
+            #recommendations {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                bottom: auto;
+                left: auto;
+                max-width: 350px;
+                max-height: 80vh;
+                border-radius: 10px;
+                transform: none;
+            }
         }
 
         .recommendation-item {
@@ -294,6 +485,7 @@
         .recommendation-item h4 {
             color: #4CAF50;
             margin-bottom: 8px;
+            font-size: 16px;
         }
 
         .seat-side {
@@ -307,17 +499,56 @@
             margin-top: 5px;
         }
 
+        /* Mobile-first info panel */
         #info-panel {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
             background: rgba(0, 0, 0, 0.8);
             padding: 15px;
             border-radius: 10px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 1000;
-            font-size: 14px;
+            font-size: 12px;
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            #info-panel {
+                position: absolute;
+                bottom: 20px;
+                left: 20px;
+                right: auto;
+                font-size: 14px;
+                display: block;
+            }
+        }
+
+        /* Mobile toggle button for info */
+        #mobile-toggle {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
+            font-size: 20px;
+        }
+
+        @media (min-width: 768px) {
+            #mobile-toggle {
+                display: none;
+            }
         }
 
         .loading {
@@ -341,19 +572,32 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Mobile attribution */
         #attribution {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
+            position: fixed;
+            bottom: 70px;
+            right: 10px;
             background: rgba(0, 0, 0, 0.8);
             padding: 10px;
             border-radius: 8px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 1000;
-            font-size: 12px;
+            font-size: 10px;
             color: #ccc;
-            max-width: 250px;
+            max-width: 200px;
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            #attribution {
+                position: absolute;
+                bottom: 20px;
+                right: 20px;
+                font-size: 12px;
+                max-width: 250px;
+                display: block;
+            }
         }
 
         #attribution a {
@@ -364,15 +608,56 @@
         #attribution a:hover {
             text-decoration: underline;
         }
+
+        /* Mobile recommendations toggle */
+        #recommendations-toggle {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
+            font-size: 20px;
+        }
+
+        @media (min-width: 768px) {
+            #recommendations-toggle {
+                display: none;
+            }
+        }
+
+        /* Mobile overlay for better touch interaction */
+        .mobile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .mobile-overlay.show {
+            display: block;
+        }
     </style>
-  <script type="module" crossorigin src="/Trilogy-Assignment/assets/main-B3Gd5atv.js"></script>
+  <script type="module" crossorigin src="/Trilogy-Assignment/assets/main-CWU-9mD1.js"></script>
 </head>
 <body>
     <div id="container">
         <canvas id="earth-canvas"></canvas>
         
         <div id="ui-panel">
-            <h2 style="margin-bottom: 20px; color: #87CEEB;">✈️ Seat Recommender</h2>
+            <h2 style="margin-bottom: 20px; color: #87CEEB; font-size: 18px;">✈️ Seat Recommender</h2>
             
             <div class="form-group">
                 <label for="source">Source City:</label>
@@ -433,6 +718,7 @@
         </div>
         
         <div id="recommendations">
+            <button class="recommendations-close" onclick="closeRecommendations()">×</button>
             <h3 style="margin-bottom: 15px; color: #87CEEB;">🎯 Recommendations</h3>
             <p style="color: #ccc; font-size: 14px;">Enter flight details to get personalized seat recommendations based on sun position and flight direction.</p>
         </div>
@@ -445,6 +731,13 @@
             <div style="margin-top: 10px;"><strong>🌙 Day/Night Cycle:</strong></div>
             <div>• Bright side: Day • Dark side: Night with city lights</div>
         </div>
+
+        <!-- Mobile toggle buttons -->
+        <div id="mobile-toggle" onclick="toggleInfo()">ℹ️</div>
+        <div id="recommendations-toggle" onclick="toggleRecommendations()">🎯</div>
+        
+        <!-- Mobile overlay -->
+        <div class="mobile-overlay" id="mobile-overlay" onclick="closeMobilePanels()"></div>
     </div>
 
     <script>
@@ -457,6 +750,47 @@
         // Load airports data - this will be populated by the main.js module
         function setAirports(airportList) {
             airports = airportList.map(airport => airport.city);
+        }
+
+        // Mobile panel toggle functions
+        function toggleInfo() {
+            const infoPanel = document.getElementById('info-panel');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (infoPanel.style.display === 'block') {
+                infoPanel.style.display = 'none';
+                overlay.classList.remove('show');
+            } else {
+                infoPanel.style.display = 'block';
+                overlay.classList.add('show');
+            }
+        }
+
+        function toggleRecommendations() {
+            const recommendations = document.getElementById('recommendations');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (recommendations.classList.contains('show')) {
+                recommendations.classList.remove('show');
+                overlay.classList.remove('show');
+            } else {
+                recommendations.classList.add('show');
+                overlay.classList.add('show');
+            }
+        }
+
+        function closeRecommendations() {
+            const recommendations = document.getElementById('recommendations');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            recommendations.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        function closeMobilePanels() {
+            document.getElementById('info-panel').style.display = 'none';
+            document.getElementById('recommendations').classList.remove('show');
+            document.getElementById('mobile-overlay').classList.remove('show');
         }
 
         // Search functionality
@@ -628,9 +962,13 @@
             renderCalendar();
         }
 
-        // Make setAirports available globally
+        // Make functions available globally
         window.setAirports = setAirports;
         window.setupSearch = setupSearch;
+        window.toggleInfo = toggleInfo;
+        window.toggleRecommendations = toggleRecommendations;
+        window.closeRecommendations = closeRecommendations;
+        window.closeMobilePanels = closeMobilePanels;
 
         // Initialize calendar when page loads
         document.addEventListener('DOMContentLoaded', function() {
