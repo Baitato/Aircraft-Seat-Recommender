@@ -6,13 +6,15 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && npm run copy-to-docs",
+    "copy-to-docs": "npx shx rm -rf docs && npx shx cp -r dist docs && npx shx cp -r textures docs/ && npx shx cp -r textures-ultra docs/",
     "preview": "vite preview"
   },
   "dependencies": {
     "three": "^0.158.0"
   },
   "devDependencies": {
+    "shx": "^0.4.0",
     "vite": "^5.0.0"
   },
   "keywords": [
