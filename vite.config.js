@@ -2,11 +2,11 @@ import { defineConfig } from 'vite'
 import { ghPages } from 'vite-plugin-gh-pages'
 
 export default defineConfig({
-  base: '/trilogy-assignment/',
+  base: '/Trilogy-Assignment/',
   plugins: [
     ghPages({
       branch: 'gh-pages',
-      repo: 'https://github.com/baitato/trilogy-assignment.git'
+      repo: 'https://github.com/baitato/Trilogy-Assignment.git'
     })
   ],
   build: {

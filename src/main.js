@@ -369,48 +369,104 @@ class AircraftSeatRecommender {
     }
 
     updateSunPosition(departureTime) {
-        // Update sun position based on departure time
+        // Parse the departure date and time
         const departureDate = new Date(departureTime);
+        
+        // Calculate the day of year (0-365)
+        const startOfYear = new Date(departureDate.getFullYear(), 0, 0);
+        const dayOfYear = Math.floor((departureDate - startOfYear) / (1000 * 60 * 60 * 24));
+        
+        // Calculate solar declination (how far north/south the sun is)
+        // This approximates the sun's position relative to the equator
+        const solarDeclination = 23.45 * Math.sin((2 * Math.PI / 365) * (dayOfYear - 80));
+        
+        // Calculate time of day in radians (0 = midnight, π = noon, 2π = midnight)
         const hours = departureDate.getHours();
         const minutes = departureDate.getMinutes();
-        const timeOfDay = hours + minutes / 60;
+        const timeOfDay = (hours + minutes / 60) * (2 * Math.PI / 24);
         
-        // Calculate sun position (simplified)
-        const sunAngle = (timeOfDay - 6) * (Math.PI / 12); // 6 AM = 0, 6 PM = π
-        const sunX = Math.cos(sunAngle) * 5;
-        const sunY = Math.sin(sunAngle) * 5;
+        // Earth's axial tilt (23.4 degrees)
+        const earthTilt = 23.4 * Math.PI / 180;
         
-        this.sunLight.position.set(sunX, sunY, 0);
+        // Calculate sun position in 3D space
+        // X: east-west position (longitude)
+        // Y: north-south position (latitude) 
+        // Z: distance from Earth center
+        
+        // Sun's distance from Earth (much larger than Earth radius)
+        const sunDistance = 10;
+        
+        // Calculate sun position relative to Earth's tilted axis
+        // First, calculate position in Earth's coordinate system
+        const sunX = sunDistance * Math.cos(solarDeclination * Math.PI / 180) * Math.cos(timeOfDay);
+        const sunY = sunDistance * Math.sin(solarDeclination * Math.PI / 180);
+        const sunZ = sunDistance * Math.cos(solarDeclination * Math.PI / 180) * Math.sin(timeOfDay);
+        
+        // Apply Earth's axial tilt to the sun position
+        // Rotate around Z-axis to account for Earth's tilt
+        const tiltedSunX = sunX * Math.cos(earthTilt) - sunY * Math.sin(earthTilt);
+        const tiltedSunY = sunX * Math.sin(earthTilt) + sunY * Math.cos(earthTilt);
+        const tiltedSunZ = sunZ;
+        
+        // Set the sun light position
+        this.sunLight.position.set(tiltedSunX, tiltedSunY, tiltedSunZ);
+        
+        // Debug logging
+        console.log('=== SUN POSITION DEBUG ===');
+        console.log('Departure date:', departureDate.toDateString());
+        console.log('Day of year:', dayOfYear);
+        console.log('Solar declination:', solarDeclination.toFixed(2) + '°');
+        console.log('Time of day:', hours + ':' + minutes.toString().padStart(2, '0'));
+        console.log('Sun position (tilted):', {
+            x: tiltedSunX.toFixed(2),
+            y: tiltedSunY.toFixed(2), 
+            z: tiltedSunZ.toFixed(2)
+        });
+        console.log('=== END SUN DEBUG ===');
     }
 
     displayRecommendations(recommendations) {
         const container = document.getElementById('recommendations');
         
-        // Clear previous recommendations
-        const existingContent = container.querySelector('h3');
+        // Clear previous recommendations but preserve the close button and title
+        const closeButton = container.querySelector('.recommendations-close');
+        const title = container.querySelector('h3');
+        const defaultText = container.querySelector('p');
+        
         container.innerHTML = '';
-        container.appendChild(existingContent);
+        
+        // Restore the close button and title
+        if (closeButton) container.appendChild(closeButton);
+        if (title) container.appendChild(title);
         
         if (recommendations.length === 0) {
             const noRecs = document.createElement('p');
             noRecs.style.color = '#ccc';
             noRecs.textContent = 'No specific recommendations for this route.';
             container.appendChild(noRecs);
-            return;
+        } else {
+            recommendations.forEach(rec => {
+                const item = document.createElement('div');
+                item.className = 'recommendation-item';
+                
+                item.innerHTML = `
+                    <h4>${rec.seatSide} Side</h4>
+                    <div class="seat-side">${rec.recommendation}</div>
+                    <div class="reason">${rec.reason}</div>
+                `;
+                
+                container.appendChild(item);
+            });
         }
 
-        recommendations.forEach(rec => {
-            const item = document.createElement('div');
-            item.className = 'recommendation-item';
-            
-            item.innerHTML = `
-                <h4>${rec.seatSide} Side</h4>
-                <div class="seat-side">${rec.recommendation}</div>
-                <div class="reason">${rec.reason}</div>
-            `;
-            
-            container.appendChild(item);
-        });
+        // Automatically show the recommendations panel
+        container.classList.add('show');
+        
+        // Also show the overlay on mobile
+        const overlay = document.getElementById('mobile-overlay');
+        if (overlay) {
+            overlay.classList.add('show');
+        }
     }
 
     setupSearchFunctionality() {
