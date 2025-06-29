@@ -23,11 +23,6 @@ Thumbs.db
 # Editor directories and files
 .idea/
 .vscode/
-*.sublime-workspace
-*.sublime-project
-
-# Large or generated textures (optional, keep only if you don't want to push ultra textures)
-textures-ultra/
 
 # Misc
 *.tgz 

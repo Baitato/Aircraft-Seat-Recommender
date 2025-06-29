@@ -21,6 +21,8 @@ class AircraftSeatRecommender {
         this.seatRecommender = null;
         this.airportData = null;
         this.currentFlightPath = null;
+        this.sourceMarker = null;
+        this.destMarker = null;
         
         this.init();
     }
@@ -42,6 +44,12 @@ class AircraftSeatRecommender {
         // Load airport data for search functionality
         await this.airportData.loadAirports();
         
+        // Initialize search functionality with airport data
+        if (window.setAirports) {
+            window.setAirports(this.airportData.getAllAirports());
+            this.setupSearchFunctionality();
+        }
+        
         // Setup event listeners
         this.setupEventListeners();
         
@@ -53,7 +61,13 @@ class AircraftSeatRecommender {
         const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
             .toISOString()
             .slice(0, 16);
-        document.getElementById('departure-time').value = localDateTime;
+        document.getElementById('departure-time').value = now.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     }
 
     setupScene() {
@@ -65,7 +79,7 @@ class AircraftSeatRecommender {
         const w = window.innerWidth;
         const h = window.innerHeight;
         this.camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
-        this.camera.position.z = 7;
+        this.camera.position.z = 3.5;
     }
 
     setupRenderer() {
@@ -157,11 +171,20 @@ class AircraftSeatRecommender {
         // Update controls
         this.controls.update();
 
-        // Rotate Earth layers at different speeds
-        this.earthMesh.rotation.y += 0.002;
-        this.lightsMesh.rotation.y += 0.002;
-        this.glowMesh.rotation.y += 0.002;
+        // Rotate the entire Earth group (including markers and flight paths)
+        this.earthGroup.rotation.y += 0.002;
         this.stars.rotation.y -= 0.0002;
+
+        // Debug: Log Earth rotation and marker positions every 100 frames
+        if (Math.floor(Date.now() / 100) % 100 === 0) {
+            console.log('Earth group rotation Y:', this.earthGroup.rotation.y);
+            if (this.sourceMarker) {
+                console.log('Source marker world position:', this.sourceMarker.getWorldPosition(new THREE.Vector3()));
+            }
+            if (this.destMarker) {
+                console.log('Dest marker world position:', this.destMarker.getWorldPosition(new THREE.Vector3()));
+            }
+        }
 
         // Render scene
         this.renderer.render(this.scene, this.camera);
@@ -170,10 +193,10 @@ class AircraftSeatRecommender {
     async getRecommendations() {
         const source = document.getElementById('source').value.trim();
         const destination = document.getElementById('destination').value.trim();
-        const departureTime = document.getElementById('departure-time').value;
+        const departureTimeInput = document.getElementById('departure-time').value;
         const flightDuration = parseFloat(document.getElementById('flight-duration').value);
 
-        if (!source || !destination || !departureTime || !flightDuration) {
+        if (!source || !destination || !departureTimeInput || !flightDuration) {
             alert('Please fill in all fields');
             return;
         }
@@ -191,17 +214,43 @@ class AircraftSeatRecommender {
                 return;
             }
 
+            // Parse departure time from the calendar input
+            let departureTime;
+            if (departureTimeInput.includes(',')) {
+                // Format: "Jun 29, 2024, 11:30 PM"
+                departureTime = new Date(departureTimeInput).toISOString().slice(0, 16);
+            } else {
+                // Fallback to original format
+                departureTime = departureTimeInput;
+            }
+
             // Calculate flight path
+            const earthRadius = 1.5;
+            const sourcePos = this.latLngTo3D(sourceAirport.latitude, sourceAirport.longitude, earthRadius);
+            const destPos = this.latLngTo3D(destAirport.latitude, destAirport.longitude, earthRadius);
+            
+            // Create flight path with higher arch to avoid surface glitching
             const flightPath = this.calculateFlightPath(sourceAirport, destAirport);
+            console.log('Calculated flight path points:', flightPath);
             
             // Remove previous flight path
             if (this.currentFlightPath) {
-                this.scene.remove(this.currentFlightPath);
+                this.earthGroup.remove(this.currentFlightPath);
+                console.log('Removed previous flight path');
             }
             
-            // Add new flight path
+            // Add new flight path to the earth group so it rotates with the Earth
             this.currentFlightPath = this.createFlightPath(flightPath);
-            this.scene.add(this.currentFlightPath);
+            console.log('Created flight path object:', this.currentFlightPath);
+            
+            this.earthGroup.add(this.currentFlightPath);
+            console.log('Added new flight path to earthGroup');
+            console.log('Earth group children count after adding flight path:', this.earthGroup.children.length);
+            console.log('Current flight path object:', this.currentFlightPath);
+            console.log('Earth group:', this.earthGroup);
+
+            // Add visible markers at source and destination
+            this.addCityMarkers(sourceAirport, destAirport);
 
             // Get seat recommendations
             const recommendations = this.seatRecommender.getRecommendations(
@@ -226,44 +275,96 @@ class AircraftSeatRecommender {
     }
 
     calculateFlightPath(source, destination) {
+        // Create a curved arch flight path that follows great circle distance
+        const earthRadius = 1.5; // Match the Earth size
+        
         // Convert lat/lng to 3D coordinates on Earth surface
-        const earthRadius = 1.5; // Updated to match the larger Earth size
         const sourcePos = this.latLngTo3D(source.latitude, source.longitude, earthRadius);
         const destPos = this.latLngTo3D(destination.latitude, destination.longitude, earthRadius);
-
-        // Create a great circle path
-        const pathPoints = [];
-        const steps = 100;
         
-        for (let i = 0; i <= steps; i++) {
-            const t = i / steps;
+        // Debug logging
+        console.log('Source:', source.city, 'Lat:', source.latitude, 'Lng:', source.longitude, 'Pos:', sourcePos);
+        console.log('Destination:', destination.city, 'Lat:', destination.latitude, 'Lng:', destination.longitude, 'Pos:', destPos);
+        
+        // Create a curved arch path using interpolation between the adjusted coordinates
+        const pathPoints = [];
+        const segments = 50; // Number of points along the path
+        
+        for (let i = 0; i <= segments; i++) {
+            const t = i / segments;
+            
+            // Interpolate latitude and longitude
             const lat = source.latitude + (destination.latitude - source.latitude) * t;
             const lng = source.longitude + (destination.longitude - source.longitude) * t;
-            const pos = this.latLngTo3D(lat, lng, earthRadius);
-            pathPoints.push(pos);
+            
+            // Use the same coordinate conversion as spheres
+            const point = this.latLngTo3D(lat, lng, earthRadius);
+            
+            // Add arch height
+            const archHeight = 0.25; // Much higher arch to prevent surface glitching
+            const archFactor = 4 * archHeight * t * (1 - t);
+            const direction = point.clone().normalize();
+            const finalPoint = point.clone().add(direction.multiplyScalar(archFactor));
+            
+            pathPoints.push(finalPoint);
         }
-
+        
         return pathPoints;
     }
 
     latLngTo3D(lat, lng, radius) {
-        const phi = (90 - lat) * (Math.PI / 180);
-        const theta = (lng + 180) * (Math.PI / 180);
+        // Convert latitude and longitude to 3D coordinates
+        // Try swapping X and Z with offsets to match Earth texture coordinate system
         
-        const x = -(radius * Math.sin(phi) * Math.cos(theta));
-        const z = radius * Math.sin(phi) * Math.sin(theta);
-        const y = radius * Math.cos(phi);
+        // Convert to radians
+        const latRad = lat * Math.PI / 180;
+        const lngRad = lng * Math.PI / 180;
         
-        return new THREE.Vector3(x, y, z);
+        // Add offsets for both latitude and longitude
+        // Change these values to experiment:
+        const latOffset = 0; // Degrees (positive = north, negative = south)
+        const lngOffset = -90; // Degrees (positive = east, negative = west)
+        
+        const adjustedLat = latRad + (latOffset * Math.PI / 180);
+        const adjustedLng = lngRad + (lngOffset * Math.PI / 180);
+        
+        // Standard spherical coordinate system:
+        // X: longitude (east-west)
+        // Y: latitude (north-south) 
+        // Z: depth (into/out of screen)
+        
+        const x = radius * Math.cos(adjustedLat) * Math.cos(adjustedLng);
+        const y = radius * Math.sin(adjustedLat);
+        const z = radius * Math.cos(adjustedLat) * Math.sin(adjustedLng);
+        
+        // Swap X and Z to match Earth texture coordinate system
+        return new THREE.Vector3(z, y, x);
     }
 
     createFlightPath(pathPoints) {
-        const geometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
-        const material = new THREE.LineBasicMaterial({ 
-            color: 0xff4444,
-            linewidth: 2
+        // Create a thicker tube geometry for the flight path with proper rendering priority
+        const curve = new THREE.CatmullRomCurve3(pathPoints);
+        const tubeGeometry = new THREE.TubeGeometry(curve, 64, 0.008, 8, false); // Thicker tube
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0xffaa00, // Warmer, more elegant yellow
+            transparent: true,
+            opacity: 0.9,
+            depthTest: false, // Disable depth testing to render on top
+            depthWrite: false, // Don't write to depth buffer
+            side: THREE.DoubleSide // Render both sides
         });
-        return new THREE.Line(geometry, material);
+        const tube = new THREE.Mesh(tubeGeometry, material);
+        
+        // Set render order to ensure it renders after the Earth
+        tube.renderOrder = 1;
+        
+        // Add some debugging
+        console.log('Flight path tube created with arch points:', pathPoints);
+        console.log('Tube geometry vertices:', tubeGeometry.attributes.position.count);
+        console.log('Tube mesh:', tube);
+        console.log('Tube material:', material);
+        
+        return tube;
     }
 
     updateSunPosition(departureTime) {
@@ -310,10 +411,66 @@ class AircraftSeatRecommender {
             container.appendChild(item);
         });
     }
+
+    setupSearchFunctionality() {
+        // This function will be called from the HTML script
+        if (typeof window.setupSearch === 'function') {
+            window.setupSearch('source', 'source-results');
+            window.setupSearch('destination', 'destination-results');
+        }
+    }
+
+    addCityMarkers(sourceAirport, destAirport) {
+        const earthRadius = 1.5;
+        
+        // Remove previous markers
+        if (this.sourceMarker) {
+            this.earthGroup.remove(this.sourceMarker);
+        }
+        if (this.destMarker) {
+            this.earthGroup.remove(this.destMarker);
+        }
+        
+        // Create source marker (green sphere) - much bigger
+        const sourcePos = this.latLngTo3D(sourceAirport.latitude, sourceAirport.longitude, earthRadius);
+        const sourceGeometry = new THREE.SphereGeometry(0.03, 16, 16); // Much bigger sphere
+        const sourceMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x00ff88, // Softer green
+            transparent: true,
+            opacity: 0.9
+        });
+        this.sourceMarker = new THREE.Mesh(sourceGeometry, sourceMaterial);
+        this.sourceMarker.position.copy(sourcePos);
+        this.earthGroup.add(this.sourceMarker);
+        
+        // Create destination marker (blue sphere) - much bigger
+        const destPos = this.latLngTo3D(destAirport.latitude, destAirport.longitude, earthRadius);
+        const destGeometry = new THREE.SphereGeometry(0.03, 16, 16); // Much bigger sphere
+        const destMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x4488ff, // Softer blue
+            transparent: true,
+            opacity: 0.9
+        });
+        this.destMarker = new THREE.Mesh(destGeometry, destMaterial);
+        this.destMarker.position.copy(destPos);
+        this.earthGroup.add(this.destMarker);
+        
+        console.log('=== COORDINATE DEBUG ===');
+        console.log('Source airport:', sourceAirport.city);
+        console.log('  Lat:', sourceAirport.latitude, 'Lng:', sourceAirport.longitude);
+        console.log('  Calculated position:', sourcePos);
+        console.log('  Expected location: Should be on Earth surface at these coordinates');
+        console.log('Destination airport:', destAirport.city);
+        console.log('  Lat:', destAirport.latitude, 'Lng:', destAirport.longitude);
+        console.log('  Calculated position:', destPos);
+        console.log('  Expected location: Should be on Earth surface at these coordinates');
+        console.log('Earth group children count:', this.earthGroup.children.length);
+        console.log('=== END DEBUG ===');
+    }
 }
 
 // Initialize the application
 const app = new AircraftSeatRecommender();
 
 // Make getRecommendations function globally available
-window.getRecommendations = () => app.getRecommendations(); 
+window.getRecommendations = () => app.getRecommendations();

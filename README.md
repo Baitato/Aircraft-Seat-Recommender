@@ -6,7 +6,6 @@ A sophisticated web application that provides intelligent aircraft seat recommen
 
 ### 🌍 3D Earth Visualization
 - **Ultra-High Resolution Earth**: 8K textures from [Solar System Scope](https://www.solarsystemscope.com/textures/) for incredible detail
-- **Realistic Earth Rendering**: Based on the [bobbyroe/threejs-earth](https://github.com/bobbyroe/threejs-earth) implementation
 - **Larger Earth Size**: 50% larger Earth for better visibility and impact
 - **Atmospheric Effects**: Fresnel shader for atmospheric glow
 - **City Lights**: Visible on the night side of Earth with 8K resolution
